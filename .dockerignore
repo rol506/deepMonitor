@@ -1,0 +1,15 @@
+bin/
+include/
+lib/
+lib64
+pyvenv.cfg
+
+src/__pycache__
+
+hh.html
+details.html
+details_files/
+hh_files/
+
+log.txt
+TODO.txt

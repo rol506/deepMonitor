@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block head %}
+    {{super()}}
+    {% endblock %}
+</head>
+<body>
+    {% block body %}
+    {{super()}}
+    <header style="grid-area: header;"></header>
+    <!-- <aside style="grid-area: aside;" id="aside"><button class="active" onclick="toggleAside();">
+        <span class="first"></span>
+        <span class="second"></span>
+        <span class="third"></span>
+    </button></aside> -->
+    <main style="grid-area: main;">
+      <div class="block-header"><span>{{comp["shortName"]}}</span></div>
+      <div class="general">
+        {% if comp["isAccredicted"] %}
+        <div class="block-inline" style="grid-area: acc;"><img src="{{url_for('static', filename='img/success.png')}}" class="success" alt="Подтвержден">Аккредитация компании</div>
+        {% else %}
+        <div class="block-inline" style="grid-area: acc;"><img src="{{url_for('static', filename='img/failure.png')}}" class="success" alt="Нет информации">Аккредитация компании</div>
+        {% endif %}
+
+        {% if comp["isActive"] %}
+        <div class="block-inline" style="grid-area: tid;"><img src="{{url_for('static', filename='img/success.png')}}" class="success" alt="Подтвержден">ИНН: {{comp["TID"]}}</div>
+        {% else %}
+        <div class="block-inline" style="grid-area: tid;"><img src="{{url_for('static', filename='img/failure.png')}}" class="success" alt="Нет информации">ИНН: {{comp["TID"]}}</div>
+        {% endif %}
+        <div class="block" style="grid-area: workerCount;"><p class="header">Среднесписочная численность сотрудников</p><p class="data" style="font-size: 9rem;">{{comp["workerCountMean"]}}</p></div>
+        <div class="block" style="grid-area: vacansyCount;"><p class="header">Количество вакансий</p><p class="data" style="font-size: 9rem;">{{comp["vacansyCount"]}}</p></div>
+        <div class="block" style="grid-area: tax;"><p class="header">Информация о налогах</p>
+          <ul>
+            <li>Налоговый режим: {{comp["taxMode"]}}</li>
+            <li>Налоговая задолженность: {{comp["taxDebt"]}}</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+    <footer style="grid-area: footer;">Footer</footer>
+    {% endblock %}
+</body>
+</html>

@@ -1,0 +1,168 @@
+* {
+  font-family: "Arial", sans-serif;
+  margin: 0;
+  padding: 0;
+  --nav-color: #201B26;
+  --bg-color: #FFFEFF;
+  --big-font-color: #00E5E6;
+  --block-color: #F4F2F2;
+}
+
+body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:  "header header"
+                        "aside main"
+                        "footer footer";
+}
+
+header {
+  height: 50px;
+  background: var(--nav-color);
+}
+
+aside button {
+  width: 50px;
+  height: 50px;
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: 0.2s ease-out all;
+  margin-left: 5px;
+}
+
+aside button:hover {
+
+}
+
+aside button span {
+  width: 30px;
+  height: 3px;
+  background-color: white;
+}
+
+aside button.active span:nth-child(1) {
+  transform: rotate(45deg) translate(6px, 6px);
+}
+
+aside button.active span:nth-child(2) {
+  opacity: 0;
+  transform: scale(0);
+}
+
+aside button.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -7px);
+}
+
+aside {
+  min-height: 95vh;
+  padding: 5px;
+  width: 250px;
+  background: var(--nav-color);
+
+  transition: 0.2s ease-out all;
+  /*transform: translateX(-200px);*/
+}
+
+aside.active {
+  transform: translateX(0px);
+}
+
+main {
+  min-height: 95vh;
+  padding: 80px;
+  background: var(--bg-color);
+}
+
+.general {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+  "acc acc"
+  "tid tid"
+  "tax workerCount"
+  "tax vacansyCount";
+  gap: 10px;
+}
+
+.block-header {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px;
+  border-radius: 32px;
+  font-size: 4rem;
+  font-weight: bolder;
+  color: var(--big-font-color);
+  background: linear-gradient(90deg, #46009F, #8600EC);
+  margin-bottom: 30px;
+}
+
+.block-header span {
+  width: 50%;
+  text-align: left;
+  margin-left: 40px;
+}
+
+.block-inline {
+  border-radius: 32px;
+  min-height: 50px;
+  font-size: 1.5rem;
+  font-weight: bolder;
+  background: var(--block-color);
+  padding: 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.block {
+  border-radius: 32px;
+  min-height: 50px;
+  font-size: 1.5rem;
+  font-weight: bolder;
+  background: var(--block-color);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px; 
+}
+
+p.header {
+  font-size: 1.5rem;
+  font-weight: bolder;
+}
+
+p.data {
+  font-weight: bold;
+}
+
+.block ul li {
+  font-weight: bold;
+}
+
+img.success {
+  width: 50px;
+  aspect-ratio: 1/1;
+}
+
+footer {
+  width: 100vw;
+}
+
+@media screen and (max-width: 1000px){
+  .block-header span {
+    width: 100%;
+    text-align: center;
+    margin: unset;
+    font-size: 3rem;
+  }
+}

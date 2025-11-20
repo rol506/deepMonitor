@@ -4,3 +4,15 @@ include/
 lib/
 lib64
 pyvenv.cfg
+
+dbase.db
+src/__pycache__
+
+# Test data
+hh.html
+details.html
+details_files/
+hh_files/
+
+log.txt
+TODO.txt

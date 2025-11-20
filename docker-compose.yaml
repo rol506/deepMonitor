@@ -1,0 +1,10 @@
+
+services:
+  web:
+    build: .
+    ports:
+      - "4221:4221"
+    environment:
+      DEBUG: "False"
+      WEB_INTERFACE_PORT: "4221"
+      CACHE_FILE: "cache.json"
