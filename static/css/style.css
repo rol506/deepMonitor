@@ -17,6 +17,7 @@ body {
                         "main main"
                         "footer footer";
   min-height: 95vh;
+  overflow-x: hidden;
 }
 
 header {
@@ -37,8 +38,9 @@ main {
   grid-template-areas: 
     "head head"
     "back back"
-    "general tax"
-    "finance leader";
+    "general leader"
+    "finance tax"
+    "pie tax";
   grid-template-rows: auto;
   gap: 10px;
 }
@@ -68,13 +70,38 @@ div.ellipse {
 }
 
 #search {
-  width: 70vh;
+  width: min(70vw, 800px);
   padding: 15px;
   border-radius: 32px;;
 }
 
 #search::placeholder {
   color: var(--accent-color);
+  font-weight: bolder;
+  font-size: 0.9rem;
+}
+
+div.logo {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: 160px;
+  margin-bottom: 20px;
+}
+
+div.logo div.l {
+  font-size: 10rem;
+  font-weight: bolder;
+  color: white;
+  font-family: "WDXL Lubrifont JP N";
+  text-align: right;
+}
+
+div.logo div.r {
+  margin-top: 30px;
+  font-size: 1.6rem;
+  font-weight: bolder;
+  color: #00E5E6;
+  font-family: "WDXL Lubrifont JP N";
 }
 
 .block-header {
@@ -105,7 +132,7 @@ p.header {
   font-size: 2rem;
   font-weight: bolder;
   margin-bottom: 20px;
-  color: var(--accent-color);
+  color: black;
 }
 
 .block ul li {
@@ -118,12 +145,100 @@ img.success {
   vertical-align: middle;
 }
 
+div.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 200px;
+  gap: 10px;
+}
+
+div.stat {
+  padding: 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 5px 5px 5px #11111155;
+  border: 2px #F4F2F2 solid;
+  display: grid;
+}
+
+p.stat-header {
+  color: black;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: bolder;
+}
+
+p.stat-data {
+  width: 100%;
+  height: 100%;
+  justify-self: center;
+  text-align: center;
+  font-size: 6rem;
+  font-weight: bolder;
+}
+
+div.searchResults {
+  margin-top: 5px;
+}
+
+div.res:first-child {
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+div.res:last-child {
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+div.res:hover {
+  background-color: #ccc;
+}
+
+div.res {
+  padding: 10px;
+  background: white;
+}
+
+a.res {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  text-decoration: none;
+  color: black;
+}
+
+div.table p {
+  margin-top: 40px;
+}
+
+table.download {
+  margin-top: 20px;
+}
+
+table.download, table.download tr, table.download tr td, table.download tr th{
+  border-collapse: collapse;
+  border: 1px solid black;
+}
+
+table.download tr td {
+  padding: 5px;
+}
+
 a.anim {
   position: relative;
   text-decoration: none;
   color: var(--accent-color);
   font-weight: bolder;
   font-size: 1.25rem;
+}
+
+a.anim:active {
+  color: black;
+}
+
+a.anim:active:before {
+  background-color: black;
 }
 
 a.anim:before {
@@ -155,20 +270,46 @@ footer {
     justify-content: center;
   }
 
-  main {
+  main .dashboard {
     grid-template-columns: 1fr;
     grid-template-areas: 
       "head"
       "back"
       "general"
+      "leader"
       "tax"
       "finance"
-      "leader";
+      "pie";
     grid-template-rows: auto; 
+  }
+
+  main {
     padding: 10px;
   }
 
   .block {
-    max-width: 95vw;
+    max-width: 85vw;
+  }
+
+  div.logo {
+    margin-bottom: 10px;
+    grid-template-rows: 100px;
+  }
+
+  div.logo div.l {
+    font-size: 6rem;
+  }
+
+  p.stat-header {
+    font-size: 0.8rem;
+  }
+
+  p.stat-data {
+    font-size: 4rem;
+  }
+
+  div.logo div.r {
+    font-size: 1rem;
+    margin-top: 20px;
   }
 }

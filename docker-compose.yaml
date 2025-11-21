@@ -1,6 +1,7 @@
 
 services:
   web:
+    container_name: skin
     build: .
     ports:
       - "4221:4221"

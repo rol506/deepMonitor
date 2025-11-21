@@ -13,10 +13,42 @@
       <a href="/"><img src="{{url_for('static', filename='img/logo.png')}}" width="200px" style="margin-left: 20px;"></a>
     </header>
     <main style="grid-area: main;display: flex;flex-direction: column;align-items:center;jusitfy-content:center;">
-        <img src="{{url_for('static', filename='img/skin.png')}}" width="500px">
-        <input type="text" name="search" id="search" placeholder="Введите ИНН, ОГРН, ОГРНИП, наименования организации">
+      <section style="margin-bottom: 100px;">
+      <div class="logo">
+        <div class="l">СКИН</div>
+        <div class="r">Система<br>Контроля<br>ИТ -<br>Направления</div>
+      </div>
+      <input type="text" name="search" id="search" placeholder="Введите ИНН, ОГРН, наименование организации">
+      <div class="searchResults" id="results">
+      </div>
+      </section>
+      <div class="stats">
+        <div class="stat">
+          <p class="stat-header">Количество зарегистрированных компаний</p>
+          <p class="stat-data">{{stats[0]}}</p>
+        </div>
+        <div class="stat">
+          <p class="stat-header">Общее количество сотрудников</p>
+          <p class="stat-data">{{stats[1]}}</p>
+        </div>
+        <div class="stat">
+          <p class="stat-header">Количество аккредитованных компаний</p>
+          <p class="stat-data">{{stats[2]}}</p>
+        </div>
+      </div>
+      <div class="table">
+        <p class="stat-header"><a href="/download" download="" class="anim">Скачать отчет</a></p>
+        <table class="download">
+          <tr><th></th><th>Наименование</th><th>ИНН</th><th>Общее название</th></tr>
+        {% for i, r in enumerate(records) %}
+        <tr><td><input type="checkbox" name="{{i}}" id="{{i}}"></td><td>{{r["shortName"]}}</td><td><a class="anim" href="/dashboard/{{r["TID"]}}">{{r["TID"]}}</a></td><td>{% if r["name"] %}{{r["name"]}}{% else %}Нет данных{% endif %}</td></tr>
+        {% endfor %}
+        </table>
+        </table>
+      </div>
     </main>
     <div class="ellipse"></div>
+    <script src="{{url_for('static', filename='js/search.js')}}"></script>
     {% endblock %}
 </body>
 </html>

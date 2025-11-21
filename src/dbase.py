@@ -7,9 +7,15 @@ logging.basicConfig(encoding="utf-8", level=logging.DEBUG,
                     format="%(levelname)s %(asctime)s %(message)s",
                     handlers=[logging.FileHandler("log.txt", "w+"), logging.StreamHandler(sys.stdout)])
 
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
+
 def get_db() -> sqlite3.Connection:
     conn = sqlite3.connect("dbase.db")
-    conn.row_factory = sqlite3.Row
+    conn.row_factory = dict_factory
     return conn
 
 def init_db():
@@ -41,16 +47,16 @@ class DBase:
     #        self.__log.error("Failed to add company: " + str(e))
     #    return False
 
-    def addCompany(self, fullName, shortName, tid, ogrn, isActive, leaderName, leaderTID,
+    def addCompany(self, fullName, shortName, tid, ogrn, isActive, isAccredicted, leaderName=None, leaderTID=None,
                    name=None, mainActivity=None,
                    accreditationDate=None, registrationDate=None, address=None, earnings=None, expenses=None,
                    taxPayed=None, workerCountMean=None, taxMode=None,
                    taxDebt=None, vacancyCount=None,
                    leaderEmail=None, leaderPhone=None) -> bool:
         try:
-            sql = """INSERT INTO general (name, fullName, shortName, TID, OGRN, mainActivity, accreditationDate, registrationDate, isActive, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+            sql = """INSERT INTO general (name, fullName, shortName, TID, OGRN, mainActivity, accreditationDate, registrationDate, isActive, isAccredicted, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
             self.__cur.execute(sql,(name, fullName, shortName, tid, ogrn,
-                                   mainActivity, accreditationDate, registrationDate, int(isActive), address))
+                                   mainActivity, accreditationDate, registrationDate, int(isActive), int(isAccredicted), address))
             sql="""INSERT INTO finance (companyTID, earnings, expenses, taxPayed, workerCountMean, taxMode, taxDebt, vacancyCount) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
             self.__cur.execute(sql,(tid, earnings, expenses, taxPayed, workerCountMean, taxMode, taxDebt, vacancyCount))
             sql = """INSERT INTO leader (companyTID, name, TID, email, phone) VALUES (?, ?, ?, ?, ?)"""
@@ -62,13 +68,85 @@ class DBase:
         return False
 
     def getCompanyByTID(self, tid):
-        sql = f"""SELECT * FROM general INNER JOIN finance ON general.TID = finance.companyTID LEFT JOIN leader ON general.TID = leader.companyTID"""
+        sql = f"""SELECT * FROM general INNER JOIN finance ON general.TID = finance.companyTID LEFT JOIN leader ON general.TID = leader.companyTID WHERE general.TID = '{tid}'"""
         try:
             self.__cur.execute(sql)
             res = self.__cur.fetchone()
             if res: return res
         except sqlite3.Error as e:
             self.__log.error("Failed to get company data by TID: " + str(e))
+        return None
+
+    def getAllCompanies(self):
+        sql = f"""SELECT leader.TID AS leaderTID, leader.phone AS leaderPhone, leader.email as leaderEmail, leader.name as leaderName, general.TID AS TID, finance.*, general.* FROM general INNER JOIN finance ON general.TID = finance.companyTID LEFT JOIN leader ON general.TID = leader.companyTID"""
+        try:
+            self.__cur.execute(sql)
+            res = self.__cur.fetchall()
+            if res: return res
+        except sqlite3.Error as e:
+            self.__log.error("Failed to get all companies: " + str(e))
+        return None
+
+    def search(self, query):
+        res = []
+        try:
+            sql = f"""SELECT TID, shortName FROM general WHERE fullName LIKE '%{query}%'"""
+            self.__cur.execute(sql)
+            r = self.__cur.fetchall()
+            if r:
+                res += r
+
+            sql = f"""SELECT TID, shortName FROM general WHERE shortName LIKE '%{query}%'"""
+            self.__cur.execute(sql)
+            r = self.__cur.fetchall()
+            if r:
+                res += r
+
+            sql = f"""SELECT TID, shortName FROM general WHERE TID LIKE '%{query}%'"""
+            self.__cur.execute(sql)
+            r = self.__cur.fetchall()
+            if r:
+                res += r
+
+            sql = f"""SELECT TID, shortName FROM general WHERE OGRN LIKE '%{query}%'"""
+            self.__cur.execute(sql)
+            r = self.__cur.fetchall()
+            if r:
+                res += r
+
+            sql = f"""SELECT TID, shortName FROM general WHERE name LIKE '%{query}%'"""
+            self.__cur.execute(sql)
+            r = self.__cur.fetchall()
+            if r:
+                res += r
+            
+            s = []
+            for d in res:
+                if not d in s:
+                    s.append(d)
+            return s
+        except sqlite3.Error as e:
+            self.__log.error("Search failed: " + str(e))
+        return None
+
+    def getStats(self):
+        """Returns DB statistics [total companies, total workers, total accredicted]"""
+        try:
+            sql = f"""SELECT COUNT(*) AS totalCompanies FROM general"""
+            self.__cur.execute(sql)
+            res = self.__cur.fetchone()
+            totalCompanies = res["totalCompanies"]
+            sql = f"""SELECT SUM(workerCountMean) AS totalWorkers FROM finance"""
+            self.__cur.execute(sql)
+            res = self.__cur.fetchone()
+            totalWorkers = res["totalWorkers"]
+            sql = f"""SELECT COUNT(*) AS totalAccredicted FROM general WHERE isAccredicted = '1'"""
+            self.__cur.execute(sql)
+            res = self.__cur.fetchone()
+            totalAccredicted = res["totalAccredicted"]
+            return [totalCompanies, totalWorkers, totalAccredicted]
+        except sqlite3.Error as e:
+            self.__log.error("Failed to get stats from DB: " + str(e))
         return None
 
     def removeCompanyByTID(self, tid) -> bool:

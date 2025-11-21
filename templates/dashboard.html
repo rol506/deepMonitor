@@ -37,7 +37,7 @@
             <img class="success" src="{{url_for('static', filename='img/success.png')}}">
           </span>
           {% else %}
-          <span title="Ликвидирована/в процессе ликвидации"><b>Статус</b>: Ликвидирована/в процессе ликвидации
+          <span title="Ликвидирована/в процессе ликвидации"><b>Статус</b>: Ликвидирована или в процессе ликвидации
             <img class="success" src="{{url_for('static', filename='img/failure.png')}}">
           </span>
           {% endif %}
@@ -47,18 +47,19 @@
         </div> 
         <div class="block" style="grid-area: tax;">
           <p class="header">Финансовая информация:</p>
-          <span><b>Выручка</b>: {{comp["earnings"]}}₽</span>
-          <span><b>Расходы</b>: {{comp["expenses"]}}₽</span>
-          <span><b>Сумма уплаченных налогов</b>: {{comp["taxPayed"]}}₽</span>
+          <span><b>Выручка</b>: {{comp["earnings"]}}{% if comp["earnings"] != "Нет данных" %}₽{% endif %}</span>
+          <span><b>Расходы</b>: {{comp["expenses"]}}{% if comp["expenses"] != "Нет данных" %}₽{% endif %}</span>
+          <span><b>Сумма уплаченных налогов</b>: {{comp["taxPayed"]}}{% if comp["taxPayed"] != "Нет данных" %}₽{% endif %}</span>
           <span><b>Среднесписоч. численность сотрудников</b>: {{comp["workerCountMean"]}}</span>
           <span><b>Спец. налоговой режим</b>: {{comp["taxMode"]}}</span>
           <span><b>Налоговая задолженность</b>: {{comp["taxDebt"]}}</span>
           <span><b>Количество открытых вакансий (hh.ru)</b>: {{comp["vacancyCount"]}}</span>
-          <span><b>Налоговая нагрузка</b>: {{comp["taxBurden"]}}%</span>
+          <span><b>Налоговая нагрузка</b>: {{comp["taxBurden"]}}{% if comp["taxPayed"] != "Нет данных" %}%{% endif %}</span>
         </div>
         <div class="block" style="grid-area: finance;">
-          <p class="header">Финансовая статистика</p>
-          <div><canvas id="chart" height="150px"></canvas></div>
+          <p class="header">Финансовая статистика:</p>
+        {% if comp["taxBurden"] != "Нет данных" %}
+          <div style="grid-area: pie;display:flex;flex-direction:column;align-items:center;jusitfy-content:center;"><canvas id="chart" height="150px"></canvas></div>
           <script>
             const ctx = document.getElementById('chart').getContext('2d');
             const myChart = new Chart(ctx, {
@@ -66,22 +67,12 @@
               data: {
                 labels: ['Выручка, руб', 'Расходы, руб', 'Сумма уплаченных налогов, руб'],
                 datasets: [{
-                  //label: 'Финансовая статистика',
                   data: [{{comp["earnings"]}}, {{comp["expenses"]}}, {{comp["taxPayed"]}}],
                   backgroundColor: [
-                    '#8600EC',
-                    '#00E5E6',
-                    '#201B26',
+                    '#74E66B',
+                    '#46009F',
+                    '#EB3E26',
                   ],
-                  //borderColor: [
-                  //  'rgba(255, 99, 132, 1)',
-                  //  'rgba(54, 162, 235, 1)',
-                  //  'rgba(255, 206, 86, 1)',
-                  //  'rgba(75, 192, 192, 1)',
-                  //  'rgba(153, 102, 255, 1)',
-                  //  'rgba(255, 159, 64, 1)'
-                  //],
-                  //borderWidth: 1
                 }]
               },
               options: {
@@ -97,7 +88,35 @@
                 }
               }
             });
-          </script> 
+          </script>
+        {% else %}
+        <span><b>Нет данных</b></span>
+        {% endif %}
+        </div>
+        <div class="block" >
+          <p class="header">Данные о аккредитации компаний:</p>
+          <div style="grid-area: pie;display:flex;flex-direction:column;align-items:center;jusitfy-content:center;">
+          <div style="width: 50%;grid-area: pie;display:flex;flex-direction:column;align-items:center;jusitfy-content:center;"><canvas id="piechart"></canvas></div>
+          <script>
+            const ctx2 = document.getElementById('piechart').getContext('2d');
+            const myChartPie = new Chart(ctx2, {
+              type: 'doughnut',
+              data: {
+                labels: ['Аккредитованные компании', 'Неаккредитованные компании'],
+                datasets: [{
+                  data: [{{stats[2]}}, {{stats[0]}}-{{stats[2]}}],
+                  backgroundColor: [
+                    '#74E66B',
+                    '#46009F',
+                  ],
+               }]
+              },
+              options: {
+                radius: "80%",
+              }
+            });
+          </script>
+        </div>
         </div>
         <div class="block" style="grid-area: leader;">
           <p class="header">Сведения о руководителе:</p>

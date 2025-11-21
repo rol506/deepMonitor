@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium_stealth import stealth
+import selenium
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.support import expected_conditions as EC
@@ -34,7 +35,7 @@ def getDriver() -> webdriver.Chrome:
     service = ChromeService(executable_path=ChromeDriverManager().install())
     options = webdriver.ChromeOptions()
 
-    #options.add_argument("--headless")
+    options.add_argument("--headless")
     options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_argument('--disable-popup-blocking')
     options.add_argument('--start-maximized')
@@ -85,7 +86,7 @@ def checkAccredited(tid: str):
 
     logging.info("Sending keys")
     field = driver.find_element(By.CSS_SELECTOR, "input[type=\"text\"]") 
-    field.send_keys(str(tid))
+    field.send_keys(tid)
     field.send_keys(Keys.ENTER)
 
     logging.info("Waiting for responce")
@@ -95,8 +96,10 @@ def checkAccredited(tid: str):
     alt = driver.find_element(By.CSS_SELECTOR, ".img-ok").get_attribute("alt")
 
     if alt == "OK":
+        logging.info(tid + " is accredicted")
         return True
     elif alt == "CROSS":
+        logging.info(tid + " is not accredicted")
         return False
     return None
 
@@ -155,11 +158,17 @@ def getTaxData(tid):
     el = str(soup.find("a", attrs={"data-appeal-kind": "EGRUL_ADRES"}).text).strip()
     address = copy.deepcopy(el)
 
-    el = str(soup.find("a", attrs={"data-appeal-kind": "TAXMODE"}).text).strip()
-    taxMode = copy.deepcopy(el)
+    el = soup.find("a", attrs={"data-appeal-kind": "TAXMODE"})
+    if el is None:
+        taxMode = None
+    else:
+        taxMode = copy.deepcopy(str(el.text).strip())
 
-    el = str(soup.find("span", class_="pb-otch-status").text).strip()
-    taxDebt = copy.deepcopy(el)
+    el = soup.find("span", class_="pb-otch-status")
+    if el is None:
+        taxDebt = None
+    else:
+        taxDebt = copy.deepcopy(str(el.text).strip())
 
     el = soup.select("div.ml-5 > a:nth-child(2)")
     if el != []:
@@ -258,23 +267,29 @@ def loadFromExcel(filename):
                 )
 
 def updateData(tid, name) -> bool:
-    res = getTaxData(tid)
-    workerCounts = indexWorkerCount()[1]
-    vacancies = indexVacancies()
+    try:
+        workerCounts = indexWorkerCount()[1]
+        vacancies = indexVacancies()
+        res = getTaxData(tid)
 
-    res["workerCountMean"] = workerCounts[tid]
-    res["vanacyCount"] = vacancies[name]
+        res["workerCountMean"] = workerCounts.get(tid)
+        res["vanacyCount"] = vacancies.get(name)
+        res["isAccredicted"] = checkAccredited(tid)
 
-    db = DBase(get_db())
-    if not db.removeCompanyByTID(tid):
-        logging.error("Failed to delete old record!")
-        return False
-    if not db.addCompany(res["fullName"], res["shortName"], tid, res["ogrn"], res["isActive"], res["leaderName"], res["leaderTID"], name, res["mainActivity"], res["accreditationDate"],
-                  res["registrationDate"], res["address"], res["earnings"], res["expenses"], res["taxPayed"], res["workerCountMean"], res["taxMode"], res["taxDebt"], 
-                         res["vanacyCount"]):
-        logging.error("Failed to add updated record!")
-        return False
-    return True
+        db = DBase(get_db())
+        if not db.removeCompanyByTID(tid):
+            logging.error("Failed to delete old record!")
+            return False
+        if not db.addCompany(res["fullName"], res["shortName"], tid, res["ogrn"], res["isActive"], res["isAccredicted"], res["leaderName"], res["leaderTID"], 
+                             name, res["mainActivity"], res["accreditationDate"],
+                             res["registrationDate"], res["address"], res["earnings"], res["expenses"], res["taxPayed"], res["workerCountMean"],
+                             res["taxMode"], res["taxDebt"], res["vanacyCount"]):
+            logging.error("Failed to add updated record!")
+            return False
+        return True
+    except selenium.common.exceptions.ElementClickInterceptedException:
+        logging.warning("A click was intercepted! Restarting recursivly")
+        return updateData(tid, name)
 
 if __name__ == "__main__":
     ids = [
@@ -293,3 +308,6 @@ if __name__ == "__main__":
     #print(getCompaniesPageCountHH())
     #print(loadFromExcel("data.xlsx"))
     updateData("3906900574", "KODE")
+    for i in ids:
+        updateData(i, "")
+    #checkAccredited("9710090492")

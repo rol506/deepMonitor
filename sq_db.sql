@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS general (
   accreditationDate DATE,
   registrationDate DATE,
   isActive INTEGER NOT NULL,
+  isAccredicted INTEGER NOT NULL,
   address VARCHAR(255)
 );
 
@@ -27,8 +28,8 @@ CREATE TABLE IF NOT EXISTS finance (
 CREATE TABLE IF NOT EXISTS leader (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   companyTID VARCHAR(255) NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  TID VARCHAR(255) NOT NULL,
+  name VARCHAR(255),
+  TID VARCHAR(255),
   email VARCHAR(255),
   phone VARCHAR(255)
 );
