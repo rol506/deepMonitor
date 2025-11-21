@@ -1,148 +1,111 @@
 * {
-  font-family: "Arial", sans-serif;
+  font-family: "Fira Sans", "Arial", sans-serif;
   margin: 0;
   padding: 0;
   --nav-color: #201B26;
   --bg-color: #FFFEFF;
   --big-font-color: #00E5E6;
-  --block-color: #F4F2F2;
+  /*--block-color: #F4F2F2;*/
+  --block-color: #FFFFFF;
+  --accent-color: #46009F;
 }
 
 body {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-areas:  "header header"
-                        "aside main"
+                        "main main"
                         "footer footer";
+  min-height: 95vh;
 }
 
 header {
   height: 50px;
   background: var(--nav-color);
-}
-
-aside button {
-  width: 50px;
-  height: 50px;
-  background: none;
-  border: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: 0.2s ease-out all;
-  margin-left: 5px;
-}
-
-aside button:hover {
-
-}
-
-aside button span {
-  width: 30px;
-  height: 3px;
-  background-color: white;
-}
-
-aside button.active span:nth-child(1) {
-  transform: rotate(45deg) translate(6px, 6px);
-}
-
-aside button.active span:nth-child(2) {
-  opacity: 0;
-  transform: scale(0);
-}
-
-aside button.active span:nth-child(3) {
-  transform: rotate(-45deg) translate(7px, -7px);
-}
-
-aside {
-  min-height: 95vh;
-  padding: 5px;
-  width: 250px;
-  background: var(--nav-color);
-
-  transition: 0.2s ease-out all;
-  /*transform: translateX(-200px);*/
-}
-
-aside.active {
-  transform: translateX(0px);
-}
-
-main {
-  min-height: 95vh;
-  padding: 80px;
-  background: var(--bg-color);
-}
-
-.general {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-areas:
-  "acc acc"
-  "tid tid"
-  "tax workerCount"
-  "tax vacansyCount";
-  gap: 10px;
-}
-
-.block-header {
-  width: 100%;
-  height: 200px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 20px;
-  border-radius: 32px;
-  font-size: 4rem;
-  font-weight: bolder;
-  color: var(--big-font-color);
-  background: linear-gradient(90deg, #46009F, #8600EC);
-  margin-bottom: 30px;
-}
-
-.block-header span {
-  width: 50%;
-  text-align: left;
-  margin-left: 40px;
-}
-
-.block-inline {
-  border-radius: 32px;
-  min-height: 50px;
-  font-size: 1.5rem;
-  font-weight: bolder;
-  background: var(--block-color);
-  padding: 20px;
   display: flex;
   flex-direction: row;
   align-items: center;
+}
+
+main {
+  padding: 80px;
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas: 
+    "head head"
+    "back back"
+    "general tax"
+    "finance leader";
+  grid-template-rows: auto;
   gap: 10px;
 }
 
+div.ellipse {
+  width: 150vw;
+  position: absolute;
+  top:-30%;
+  left: -25vw;
+  background: linear-gradient(45deg, #46009F, #8600EC);
+  height: 100vh;
+  border-radius: 50%/50%;
+  z-index: -999;
+}
+
 .block {
-  border-radius: 32px;
-  min-height: 50px;
-  font-size: 1.5rem;
-  font-weight: bolder;
   background: var(--block-color);
+  border-radius: 32px;
+  font-size: 1.2rem;
   padding: 20px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px; 
+  gap: 5px;
+  box-shadow: 5px 5px 5px #ccc;
+  border: 2px #F4F2F2 solid;
+  max-width: 50vw;
+}
+
+#search {
+  width: 70vh;
+  padding: 15px;
+  border-radius: 32px;;
+}
+
+#search::placeholder {
+  color: var(--accent-color);
+}
+
+.block-header {
+  background: linear-gradient(45deg, #46009F, #8600EC);
+  min-height: 100px;
+  padding: 20px;
+  border-radius: 16px;
+  color: white;
+  font-size: 4rem;
+  font-weight: bolder;
+  display: grid;
+}
+
+.block-header span.d {
+  font-size: 1rem;
+  font-weight: bolder;
+  justify-self: end;
+  align-self: end;
+  position: absolute;
+}
+
+.block-header span.h {
+  align-self: center;
+  justify-self: center;
 }
 
 p.header {
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: bolder;
-}
-
-p.data {
-  font-weight: bold;
+  margin-bottom: 20px;
+  color: var(--accent-color);
 }
 
 .block ul li {
@@ -150,8 +113,35 @@ p.data {
 }
 
 img.success {
-  width: 50px;
+  width: 15px;
   aspect-ratio: 1/1;
+  vertical-align: middle;
+}
+
+a.anim {
+  position: relative;
+  text-decoration: none;
+  color: var(--accent-color);
+  font-weight: bolder;
+  font-size: 1.25rem;
+}
+
+a.anim:before {
+  content: "";
+  border-radius: 8px;
+  position: absolute;
+  display: block;
+  height: 3px;
+  width: 100%;
+  left: 0;
+  bottom: 0;
+  transition: 0.2s ease-out all;
+  transform: scaleX(0);
+  background: var(--accent-color);
+}
+
+a.anim:hover:before {
+  transform: scaleX(1);
 }
 
 footer {
@@ -160,9 +150,25 @@ footer {
 
 @media screen and (max-width: 1000px){
   .block-header span {
-    width: 100%;
-    text-align: center;
     margin: unset;
     font-size: 3rem;
+    justify-content: center;
+  }
+
+  main {
+    grid-template-columns: 1fr;
+    grid-template-areas: 
+      "head"
+      "back"
+      "general"
+      "tax"
+      "finance"
+      "leader";
+    grid-template-rows: auto; 
+    padding: 10px;
+  }
+
+  .block {
+    max-width: 95vw;
   }
 }

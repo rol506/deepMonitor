@@ -1,19 +1,40 @@
-CREATE TABLE IF NOT EXISTS company (
+CREATE TABLE IF NOT EXISTS general (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name VARCHAR(255),
   fullName VARCHAR(255) NOT NULL,
   shortName VARCHAR(255) NOT NULL,
   TID VARCHAR(255) NOT NULL,
-  accreditationDate DATE,
-  leaderTID VARCHAR(255),
-  leaderName VARCHAR(255),
+  OGRN VARCHAR(255) NOT NULL,
   mainActivity VARCHAR(255),
+  accreditationDate DATE,
+  registrationDate DATE,
+  isActive INTEGER NOT NULL,
+  address VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS finance (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  companyTID VARCHAR(255) NOT NULL,
   earnings INTEGER,
   expenses INTEGER,
   taxPayed INTEGER,
   workerCountMean INTEGER,
-  vacansyCount INTEGER,
-  isActive INTEGER,
   taxMode VARCHAR(255),
-  taxDebt VARCHAR(255)
+  taxDebt VARCHAR(255),
+  vacancyCount INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS leader (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  companyTID VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  TID VARCHAR(255) NOT NULL,
+  email VARCHAR(255),
+  phone VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS lookup (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  actualName VARCHAR(255) NOT NULL,
+  TID VARCHAR(255) NOT NULL
 );

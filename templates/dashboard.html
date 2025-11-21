@@ -4,42 +4,111 @@
 <head>
     {% block head %}
     {{super()}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     {% endblock %}
 </head>
 <body>
     {% block body %}
     {{super()}}
-    <header style="grid-area: header;"></header>
-    <!-- <aside style="grid-area: aside;" id="aside"><button class="active" onclick="toggleAside();">
-        <span class="first"></span>
-        <span class="second"></span>
-        <span class="third"></span>
-    </button></aside> -->
+    <header style="grid-area: header;">
+      <a href="/"><img src="{{url_for('static', filename='img/logo.png')}}" width="200px" style="margin-left: 20px;"></a>
+    </header>
     <main style="grid-area: main;">
-      <div class="block-header"><span>{{comp["shortName"]}}</span></div>
-      <div class="general">
-        {% if comp["isAccredicted"] %}
-        <div class="block-inline" style="grid-area: acc;"><img src="{{url_for('static', filename='img/success.png')}}" class="success" alt="Подтвержден">Аккредитация компании</div>
-        {% else %}
-        <div class="block-inline" style="grid-area: acc;"><img src="{{url_for('static', filename='img/failure.png')}}" class="success" alt="Нет информации">Аккредитация компании</div>
-        {% endif %}
+      <div class="dashboard">
+        <div class="block-header" style="grid-area: head"><span class="h">{{comp["shortName"]}}</span><span class="d">Обновлено {{lastUpdate}}</span></div>
+        <div style="grid-area: back; margin-bottom:30px;"><a class="anim" href="/">На главную</a></div>
+        <div class="block" style="grid-area: general;">
+          <p class="header">Основная информация:</p>
+          <span><b>Сокращенное наименование</b>: {{comp["shortName"]}}</span>
+          {% if comp["isAccredicted"] %}
+          <span title="Аккредитация подтверждена">
+            <b>ИНН</b>: {{comp["TID"]}}
+            <img class="success" src="{{url_for('static', filename='img/success.png')}}">
+          </span>
+          {% else %}
+          <span title="Нет данных об аккредитации">
+            <b>ИНН</b>: {{comp["TID"]}}
+            <img class="success" src="{{url_for('static', filename='img/failure.png')}}">
+          </span>
+          {% endif %}
 
-        {% if comp["isActive"] %}
-        <div class="block-inline" style="grid-area: tid;"><img src="{{url_for('static', filename='img/success.png')}}" class="success" alt="Подтвержден">ИНН: {{comp["TID"]}}</div>
-        {% else %}
-        <div class="block-inline" style="grid-area: tid;"><img src="{{url_for('static', filename='img/failure.png')}}" class="success" alt="Нет информации">ИНН: {{comp["TID"]}}</div>
-        {% endif %}
-        <div class="block" style="grid-area: workerCount;"><p class="header">Среднесписочная численность сотрудников</p><p class="data" style="font-size: 9rem;">{{comp["workerCountMean"]}}</p></div>
-        <div class="block" style="grid-area: vacansyCount;"><p class="header">Количество вакансий</p><p class="data" style="font-size: 9rem;">{{comp["vacansyCount"]}}</p></div>
-        <div class="block" style="grid-area: tax;"><p class="header">Информация о налогах</p>
-          <ul>
-            <li>Налоговый режим: {{comp["taxMode"]}}</li>
-            <li>Налоговая задолженность: {{comp["taxDebt"]}}</li>
-          </ul>
+          {% if comp["isActive"] %}
+          <span title="Действует"><b>Статус</b>: Действует
+            <img class="success" src="{{url_for('static', filename='img/success.png')}}">
+          </span>
+          {% else %}
+          <span title="Ликвидирована/в процессе ликвидации"><b>Статус</b>: Ликвидирована/в процессе ликвидации
+            <img class="success" src="{{url_for('static', filename='img/failure.png')}}">
+          </span>
+          {% endif %}
+
+          <span><b>ОГРН</b>: {{comp["OGRN"]}}</span>
+          <span><b>Основной вид деятельности</b>: {{comp["mainActivity"]}}</span>
+        </div> 
+        <div class="block" style="grid-area: tax;">
+          <p class="header">Финансовая информация:</p>
+          <span><b>Выручка</b>: {{comp["earnings"]}}₽</span>
+          <span><b>Расходы</b>: {{comp["expenses"]}}₽</span>
+          <span><b>Сумма уплаченных налогов</b>: {{comp["taxPayed"]}}₽</span>
+          <span><b>Среднесписоч. численность сотрудников</b>: {{comp["workerCountMean"]}}</span>
+          <span><b>Спец. налоговой режим</b>: {{comp["taxMode"]}}</span>
+          <span><b>Налоговая задолженность</b>: {{comp["taxDebt"]}}</span>
+          <span><b>Количество открытых вакансий (hh.ru)</b>: {{comp["vacancyCount"]}}</span>
+          <span><b>Налоговая нагрузка</b>: {{comp["taxBurden"]}}%</span>
+        </div>
+        <div class="block" style="grid-area: finance;">
+          <p class="header">Финансовая статистика</p>
+          <div><canvas id="chart" height="150px"></canvas></div>
+          <script>
+            const ctx = document.getElementById('chart').getContext('2d');
+            const myChart = new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels: ['Выручка, руб', 'Расходы, руб', 'Сумма уплаченных налогов, руб'],
+                datasets: [{
+                  //label: 'Финансовая статистика',
+                  data: [{{comp["earnings"]}}, {{comp["expenses"]}}, {{comp["taxPayed"]}}],
+                  backgroundColor: [
+                    '#8600EC',
+                    '#00E5E6',
+                    '#201B26',
+                  ],
+                  //borderColor: [
+                  //  'rgba(255, 99, 132, 1)',
+                  //  'rgba(54, 162, 235, 1)',
+                  //  'rgba(255, 206, 86, 1)',
+                  //  'rgba(75, 192, 192, 1)',
+                  //  'rgba(153, 102, 255, 1)',
+                  //  'rgba(255, 159, 64, 1)'
+                  //],
+                  //borderWidth: 1
+                }]
+              },
+              options: {
+                scales: {
+                  y: {
+                    beginAtZero: true
+                  }
+                },
+                plugins: {
+                  legend: {
+                    display: false
+                  }
+                }
+              }
+            });
+          </script> 
+        </div>
+        <div class="block" style="grid-area: leader;">
+          <p class="header">Сведения о руководителе:</p>
+          <span><b>Руководитель</b>: {{comp["leaderName"]}}</span>
+          <span><b>ИНН руководителя</b>: {{comp["leaderTID"]}}</span>
+          <span><b>Контактный email</b>: {{comp["leaderEmail"]}}</span>
+          <span><b>Контактный телефон</b>: {{comp["leaderPhone"]}}</span>
         </div>
       </div>
     </main>
-    <footer style="grid-area: footer;">Footer</footer>
+    <footer style="grid-area: footer;"></footer>
     {% endblock %}
 </body>
 </html>

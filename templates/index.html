@@ -9,6 +9,14 @@
 <body>
     {% block body %}
     {{super()}}
+    <header style="grid-area: header;">
+      <a href="/"><img src="{{url_for('static', filename='img/logo.png')}}" width="200px" style="margin-left: 20px;"></a>
+    </header>
+    <main style="grid-area: main;display: flex;flex-direction: column;align-items:center;jusitfy-content:center;">
+        <img src="{{url_for('static', filename='img/skin.png')}}" width="500px">
+        <input type="text" name="search" id="search" placeholder="Введите ИНН, ОГРН, ОГРНИП, наименования организации">
+    </main>
+    <div class="ellipse"></div>
     {% endblock %}
 </body>
 </html>

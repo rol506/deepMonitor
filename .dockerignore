@@ -4,6 +4,7 @@ lib/
 lib64
 pyvenv.cfg
 
+res/
 src/__pycache__
 
 hh.html

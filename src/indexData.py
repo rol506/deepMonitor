@@ -4,6 +4,8 @@ import os
 import time
 import json
 import random
+import requests
+import zipfile
 
 from progress.bar import IncrementalBar
 from bs4 import BeautifulSoup
@@ -67,22 +69,37 @@ def getDriver() -> webdriver.Chrome:
 
     return driver
 
-def indexWorkerCount(location, ignoreCache=False) -> list:
+def indexWorkerCount(ignoreCache=False) -> list:
     """Returns array[countByFullName, countByTID]"""
     cache = os.path.join(CACHE_FOLDER, "workerCount.json")
-    if  os.path.exists(cache) and not ignoreCache:
+    if os.path.exists(cache) and not ignoreCache:
         logging.info("Getting indexed files from cache")
         with open(cache, "r") as f:
             data = json.loads(f.read())
             return data
     else:
+        if not os.path.exists("res/workerCount/"):
+            logging.info("Getting worker count XML data")
+            os.mkdir("res/")
+            os.mkdir("res/workerCount")
+            tmpFile = "tmp.zip"
+            url = "https://file.nalog.ru/opendata/7707329152-sshr2019/data-20251025-structure-20200408.zip"
+            with requests.get(url, stream=True) as r:
+                r.raise_for_status()
+                with open(tmpFile, "wb") as f:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        f.write(chunk)
+            logging.info("Extracting archive")
+            with zipfile.ZipFile(tmpFile, 'r') as z:
+                z.extractall("res/workerCount/")
+            os.remove(tmpFile)
         logging.info("Indexing files")
         start = time.time()
-        files = os.listdir(location)
+        files = os.listdir("res/workerCount")
         bar = IncrementalBar("Indexing worker mean count", max=len(files))
         data = [{}, {}]
         for file in files:
-            with open(os.path.join(location, file), "r") as f:
+            with open(os.path.join("res/workerCount", file), "r") as f:
                 dat = f.read()
             soup = BeautifulSoup(dat, features="xml")
             docs = soup.find_all("Документ")
@@ -150,7 +167,7 @@ def getCompaniesPage(page=1):
 def indexVacancies(ignoreCache=False) -> dict:
     cache = os.path.join(CACHE_FOLDER, "vacansyCount.json")
     if os.path.exists(cache) and not ignoreCache:
-        logging.debug("Getting hh.ru vacancy data from cache")
+        logging.info("Getting hh.ru vacancy data from cache")
         with open(cache, "r") as f:
             data = json.loads(f.read())
             return data
@@ -161,11 +178,11 @@ def indexVacancies(ignoreCache=False) -> dict:
         for page in range(cnt):
             d = getCompaniesPage(page)
             data.update(d)
-        logging.debug("Writing hh.ru vacancy data in cache")
+        logging.info("Writing hh.ru vacancy data in cache")
         with open(cache, "w") as f:
             f.write(json.dumps(data))
             return data
 
 if __name__ == "__main__":
-    indexFiles("res/workerCount", ignoreCache=True)
+    indexWorkerCount("res/workerCount", ignoreCache=True)
     indexVacancies(ignoreCache=True)

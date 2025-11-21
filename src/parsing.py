@@ -34,7 +34,7 @@ def getDriver() -> webdriver.Chrome:
     service = ChromeService(executable_path=ChromeDriverManager().install())
     options = webdriver.ChromeOptions()
 
-    options.add_argument("--headless")
+    #options.add_argument("--headless")
     options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_argument('--disable-popup-blocking')
     options.add_argument('--start-maximized')
@@ -103,30 +103,27 @@ def checkAccredited(tid: str):
 def getTaxData(tid):
     logging.info("Getting tax-related data")
 
-    #driver = getDriver()
-    #url = f"https://pb.nalog.ru/search.html#mode=search-all&queryAll={tid}"
-    #driver.get(url)
+    driver = getDriver()
+    url = f"https://pb.nalog.ru/search.html#mode=search-all&queryAll={tid}"
+    driver.get(url)
 
-    #wait = WebDriverWait(driver, 20)
-    #wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.pb-card--clickable")))
+    wait = WebDriverWait(driver, 20)
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.pb-card--clickable")))
 
-    #click = driver.find_element(By.CSS_SELECTOR, "div.pb-card--clickable")
-    #click.click()
+    click = driver.find_element(By.CSS_SELECTOR, "div.pb-card--clickable")
+    click.click()
 
-    #wait = WebDriverWait(driver, 20)
-    #wait.until(EC.url_changes(url))
-    #wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.pb-company-name")))
+    wait = WebDriverWait(driver, 20)
+    wait.until(EC.url_changes(url))
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#pnlCompanyMainInfo > div:nth-child(1)")))
 
-    #panel = driver.find_element(By.CSS_SELECTOR, "#pnlCompany")
-    #html = panel.get_attribute("innerHTML")
-    #print("HTML: " + html)
-    #driver.implicitly_wait(3000)
-    #html = panel.get_attribute("innerHTML")
-    #print("HTML: " + html)
+    panel = driver.find_element(By.TAG_NAME, "html")
+    driver.implicitly_wait(3000)
+    html = panel.get_attribute("innerHTML")
 
     # DEBUG
-    with open("details.html", "r") as f:
-        html = f.read()
+    #with open("details.html", "r") as f:
+    #    html = f.read()
 
     soup = BeautifulSoup(html, "lxml")
 
@@ -144,13 +141,68 @@ def getTaxData(tid):
     shortName = copy.deepcopy(el)
 
     el = str(soup.find("a", attrs={"data-appeal-kind": "EGRUL_OGRN"}).find(string=True)).strip()
-    registration = copy.deepcopy(el)
+    ogrn = copy.deepcopy(el)
 
     el = str(soup.find("a", attrs={"data-appeal-kind": "EGRUL_INN"}).find(string=True)).strip()
     tid = copy.deepcopy(el)
 
     el = str(soup.find("a", attrs={"data-appeal-kind": "ISPRZD"}).text).strip()
     debt = copy.deepcopy(el)
+
+    el = str(soup.find("a", attrs={"data-appeal-kind": "EGRUL_OKVED"}).text).strip()
+    mainActivity = copy.deepcopy(el)
+
+    el = str(soup.find("a", attrs={"data-appeal-kind": "EGRUL_ADRES"}).text).strip()
+    address = copy.deepcopy(el)
+
+    el = str(soup.find("a", attrs={"data-appeal-kind": "TAXMODE"}).text).strip()
+    taxMode = copy.deepcopy(el)
+
+    el = str(soup.find("span", class_="pb-otch-status").text).strip()
+    taxDebt = copy.deepcopy(el)
+
+    el = soup.select("div.ml-5 > a:nth-child(2)")
+    if el != []:
+        earnings = str(copy.deepcopy(el[0]).text[:-1]).strip().replace(" ", "")
+    else:
+        earnings = None
+
+    el = soup.select("div.ml-5 > a:nth-child(2)")
+    if el != []:
+        expenses = str(copy.deepcopy(el[0]).text[:-1]).strip().replace(" ", "")
+    else:
+        expenses = None
+
+    el = soup.find("a", attrs={"data-appeal-kind": "TAXPAY"})
+    if el is None:
+        taxPay = None
+    else:
+        taxPay = copy.deepcopy(str(el.text)[:-1].strip()).replace(" ", "")
+
+    regDate = soup.select("#pnlCompanyLeftCol > div:nth-child(5) > div:nth-child(1) > div:nth-child(2)")
+    if regDate != []:
+        regDate = datetime.strptime(str(regDate[0].text).strip(), "%d.%m.%Y").strftime("%Y-%m-%d")
+    else:
+        regDate = None
+
+    accrDate = soup.select("div.pb-company-multicolumn-item:nth-child(11) > div:nth-child(1) > div:nth-child(2)")
+    if accrDate != []:
+        accrDate = datetime.strptime(str(accrDate[0].text).strip(), "%d.%m.%Y").strftime("%Y-%m-%d")
+    else:
+        accrDate = None
+
+    el = soup.select("#rupr > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > span:nth-child(1)")
+    if el != []:
+        leaderName = copy.deepcopy(str(el[0].text)[:-1].strip())
+    else:
+        leaderName = None
+
+    el = soup.select("#rupr > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2)")
+    if el != []:
+        leaderTID = copy.deepcopy(str(el[0].text)[:-1].strip())
+    else:
+        leaderTID = None
+
     if debt == "Не имеет задолженность":
         debt = "0"
 
@@ -158,9 +210,20 @@ def getTaxData(tid):
             "fullName": fullName,
             "shortName": shortName,
             "TID": tid,
-            "registration": registration,
+            "ogrn": ogrn,
             "isActive": isActive,
             "debt": debt,
+            "mainActivity": mainActivity,
+            "registrationDate": regDate,
+            "accreditationDate": accrDate,
+            "taxPayed": taxPay,
+            "earnings": earnings,
+            "expenses": expenses,
+            "leaderName": leaderName,
+            "leaderTID": leaderTID,
+            "address": address,
+            "taxMode": taxMode,
+            "taxDebt": taxDebt,
             }
     return res
 
@@ -194,6 +257,25 @@ def loadFromExcel(filename):
                 workerCountMean=d["Среднесписочная численность"],
                 )
 
+def updateData(tid, name) -> bool:
+    res = getTaxData(tid)
+    workerCounts = indexWorkerCount()[1]
+    vacancies = indexVacancies()
+
+    res["workerCountMean"] = workerCounts[tid]
+    res["vanacyCount"] = vacancies[name]
+
+    db = DBase(get_db())
+    if not db.removeCompanyByTID(tid):
+        logging.error("Failed to delete old record!")
+        return False
+    if not db.addCompany(res["fullName"], res["shortName"], tid, res["ogrn"], res["isActive"], res["leaderName"], res["leaderTID"], name, res["mainActivity"], res["accreditationDate"],
+                  res["registrationDate"], res["address"], res["earnings"], res["expenses"], res["taxPayed"], res["workerCountMean"], res["taxMode"], res["taxDebt"], 
+                         res["vanacyCount"]):
+        logging.error("Failed to add updated record!")
+        return False
+    return True
+
 if __name__ == "__main__":
     ids = [
             "7718620740",
@@ -207,6 +289,7 @@ if __name__ == "__main__":
             "9710089440",
             "9710090492",
             ]
-    #print(getTaxData("7718620740"))
+    #print(getTaxData("3906900574"))
     #print(getCompaniesPageCountHH())
-    print(loadFromExcel("data.xlsx"))
+    #print(loadFromExcel("data.xlsx"))
+    updateData("3906900574", "KODE")

@@ -6,6 +6,7 @@ lib64
 pyvenv.cfg
 
 dbase.db
+res/
 src/__pycache__
 
 # Test data
@@ -16,3 +17,6 @@ hh_files/
 
 log.txt
 TODO.txt
+
+.env
+.cred
