@@ -184,5 +184,5 @@ def indexVacancies(ignoreCache=False) -> dict:
             return data
 
 if __name__ == "__main__":
-    indexWorkerCount("res/workerCount", ignoreCache=True)
+    indexWorkerCount(ignoreCache=True)
     indexVacancies(ignoreCache=True)
