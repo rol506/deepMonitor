@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS leader (
   name VARCHAR(255),
   TID VARCHAR(255),
   email VARCHAR(255),
-  phone VARCHAR(255)
+  phone VARCHAR(255),
+  website VARCHAR(255)
 );
 
 CREATE TABLE IF NOT EXISTS lookup (

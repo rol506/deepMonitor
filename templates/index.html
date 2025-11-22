@@ -4,19 +4,55 @@
 <head>
     {% block head %}
     {{super()}}
+    <script src="{{url_for('static', filename='js/index.js')}}" defer></script>
     {% endblock %}
 </head>
 <body>
     {% block body %}
     {{super()}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+window.addEventListener( "pageshow", function ( event ) {
+  var historyTraversal = event.persisted || 
+                         ( typeof window.performance != "undefined" && 
+                              window.performance.navigation.type === 2 );
+  if ( historyTraversal ) {
+    // Handle page restore.
+    window.location.reload();
+  }
+});
+    </script>
+    <div id="panel" class="">
+      <div class="inner">
+        <form action="/add" method="post">
+          <label for="inputTID">ИНН компании</label><br>
+          <input type="text" name="tid" id="inputTID" required autocomplete="off" placeholder=""><br>
+          <label for="inputTID" id="bad" style="display: none;">Введен неверный ИНН!</label>
+          <label for="inputTID" id="good" style="display: none;">ИНН подходит</label>
+          <br>
+  
+          <label for="inputName">Имя компании (для поиска на hh.ru)</label><br>
+          <input type="text" name="name" id="inputName" autocomplete="off"><br><br>
+
+          <input type="checkbox" name="update" id="check">
+          <label for="check">Обновить базу данных?</label><br><br>
+
+          <input type="submit" value="Добавить">
+          <hr>
+          <button id='update'>Обновить базу данных</button>
+          <button id="close">×</button>
+        </form>
+      </div>
+    </div>
     <header style="grid-area: header;">
       <a href="/"><img src="{{url_for('static', filename='img/logo.png')}}" width="200px" style="margin-left: 20px;"></a>
+      <button id="open">+</button>
     </header>
     <main style="grid-area: main;display: flex;flex-direction: column;align-items:center;jusitfy-content:center;">
       <section style="margin-bottom: 100px;">
       <div class="logo">
         <div class="l">СКИН</div>
-        <div class="r">Система<br>Контроля<br>ИТ -<br>Направления</div>
+        <div class="r">Система Контроля ИТ - Направления</div>
       </div>
       <input type="text" name="search" id="search" placeholder="Введите ИНН, ОГРН, наименование организации">
       <div class="searchResults" id="results">
@@ -33,18 +69,43 @@
         </div>
         <div class="stat">
           <p class="stat-header">Количество аккредитованных компаний</p>
-          <p class="stat-data">{{stats[2]}}</p>
+          <div class="">
+            <div style="grid-area: pie;display:flex;flex-direction:column;align-items:center;jusitfy-content:center;">
+              <div style="width: 80%;grid-area: pie;display:flex;flex-direction:column;align-items:center;jusitfy-content:center;"><canvas id="piechart"></canvas></div>
+              <script>
+                const ctx2 = document.getElementById('piechart').getContext('2d');
+                const myChartPie = new Chart(ctx2, {
+                  type: 'doughnut',
+                  data: {
+                    labels: ['Аккредитованные компании', 'Неаккредитованные компании'],
+                    datasets: [{
+                      data: [{{stats[2]}}, {{stats[0]}}-{{stats[2]}}],
+                      backgroundColor: [
+                        '#74E66B',
+                        '#46009F',
+                      ],
+                    }]
+                  },
+                  options: {
+                    radius: "80%",
+                  }
+                });
+              </script>
+            </div>
+          </div>
         </div>
       </div>
       <div class="table">
-        <p class="stat-header"><a href="/download" download="" class="anim">Скачать отчет</a></p>
-        <table class="download">
-          <tr><th></th><th>Наименование</th><th>ИНН</th><th>Общее название</th></tr>
-        {% for i, r in enumerate(records) %}
-        <tr><td><input type="checkbox" name="{{i}}" id="{{i}}"></td><td>{{r["shortName"]}}</td><td><a class="anim" href="/dashboard/{{r["TID"]}}">{{r["TID"]}}</a></td><td>{% if r["name"] %}{{r["name"]}}{% else %}Нет данных{% endif %}</td></tr>
-        {% endfor %}
-        </table>
-        </table>
+        <form action="/downloadTable" method="post" id="form">
+        <p class="stat-header"><a href="#" onclick="send()" class="anim" id="summary">Скачать полный отчет</a></p>
+        <div class="wrapper">
+          <button id="prev">&lt;</button>
+          <table class="download" id="table">
+          </table>
+          <button id="next">&gt;</button>
+        </div>
+        </form>
+        </form>
       </div>
     </main>
     <div class="ellipse"></div>

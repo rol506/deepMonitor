@@ -36,31 +36,40 @@ class DBase:
         self.__cur = None
         self.__db.close()
 
-    #def addCompany(self, fullName, shortName, TID, accreditationDate, leaderTID, leaderName, mainActivity, earnings, expenses, taxPayed, workerCountMean, isActive=True, vacansyCount=None, taxMode=None, taxDebt=None, name=None) -> bool:
-    #    sql = """INSERT INTO company (fullName, shortName, TID, accreditationDate, leaderTID, leaderName, mainActivity, earnings, expenses, taxPayed, workerCountMean, isActive, vacancyCount, taxMod, taxDebt, name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+    def addUpdateRecord(self, tid, name) -> bool:
+        try:
+            sql = """INSERT INTO lookup (actualName, TID) VALUES (?,?)"""
+            self.__cur.execute(sql, (name, tid))
+            self.__db.commit()
+            return True
+        except sqlite3.Error as e:
+            self.__log.error("Failed to add record to lookup table: " + str(e))
+        return False
 
-    #    try:
-    #        self.__cur.execute(sql, (fullName, shortName, TID, accreditationDate, leaderTID, leaderName, mainActivity, earnings, expenses, taxPayed, workerCountMean, int(bool(isActive)), vacansyCount, name))
-    #        self.__db.commit()
-    #        return True
-    #    except sqlite3.Error as e:
-    #        self.__log.error("Failed to add company: " + str(e))
-    #    return False
+    def getLookupRecords(self):
+        try:
+            sql = """SELECT TID, actualName AS name FROM lookup"""
+            self.__cur.execute(sql)
+            res = self.__cur.fetchall()
+            if res: return res
+        except sqlite3.Error as e:
+            self.__log.error("Failed to get data from lookup table: " + str(e))
+        return None
 
     def addCompany(self, fullName, shortName, tid, ogrn, isActive, isAccredicted, leaderName=None, leaderTID=None,
                    name=None, mainActivity=None,
                    accreditationDate=None, registrationDate=None, address=None, earnings=None, expenses=None,
                    taxPayed=None, workerCountMean=None, taxMode=None,
                    taxDebt=None, vacancyCount=None,
-                   leaderEmail=None, leaderPhone=None) -> bool:
+                   leaderEmail=None, leaderPhone=None, leaderWebsite=None) -> bool:
         try:
             sql = """INSERT INTO general (name, fullName, shortName, TID, OGRN, mainActivity, accreditationDate, registrationDate, isActive, isAccredicted, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
             self.__cur.execute(sql,(name, fullName, shortName, tid, ogrn,
                                    mainActivity, accreditationDate, registrationDate, int(isActive), int(isAccredicted), address))
             sql="""INSERT INTO finance (companyTID, earnings, expenses, taxPayed, workerCountMean, taxMode, taxDebt, vacancyCount) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
             self.__cur.execute(sql,(tid, earnings, expenses, taxPayed, workerCountMean, taxMode, taxDebt, vacancyCount))
-            sql = """INSERT INTO leader (companyTID, name, TID, email, phone) VALUES (?, ?, ?, ?, ?)"""
-            self.__cur.execute(sql, (tid, leaderName, leaderTID, leaderEmail, leaderPhone))
+            sql = """INSERT INTO leader (companyTID, name, TID, email, phone, website) VALUES (?, ?, ?, ?, ?, ?)"""
+            self.__cur.execute(sql, (tid, leaderName, leaderTID, leaderEmail, leaderPhone, leaderWebsite))
             self.__db.commit()
             return True
         except sqlite3.Error as e:
@@ -78,7 +87,7 @@ class DBase:
         return None
 
     def getAllCompanies(self):
-        sql = f"""SELECT leader.TID AS leaderTID, leader.phone AS leaderPhone, leader.email as leaderEmail, leader.name as leaderName, general.TID AS TID, finance.*, general.* FROM general INNER JOIN finance ON general.TID = finance.companyTID LEFT JOIN leader ON general.TID = leader.companyTID"""
+        sql = f"""SELECT leader.TID AS leaderTID, leader.phone AS leaderPhone, leader.email as leaderEmail, leader.name as leaderName, leader.website AS leaderWebsite, general.TID AS TID, finance.*, general.* FROM general INNER JOIN finance ON general.TID = finance.companyTID LEFT JOIN leader ON general.TID = leader.companyTID"""
         try:
             self.__cur.execute(sql)
             res = self.__cur.fetchall()
@@ -163,10 +172,10 @@ class DBase:
             self.__log.error("Failed to delete company data by TID: " + str(e))
         return False
 
-    def updateCompany(self, tid, fullName=None, shortName=None, ogrn=None, isActive=None, leaderName=None,
+    def updateCompany(self, tid, fullName=None, shortName=None, ogrn=None, isActive=None, isAccredicted=None, leaderName=None,
                       leaderTID=None, name=None, mainActivity=None, accreditationDate=None, registrationDate=None, address=None,
                       earnings=None, expenses=None, taxPayed=None, workerCountMean=None, taxMode=None,
-                      taxDebt=None, vacancyCount=None, leaderEmail=None, leaderPhone=None) -> bool:
+                      taxDebt=None, vacancyCount=None, leaderEmail=None, leaderPhone=None, leaderWebsite=None) -> bool:
         data = self.getCompanyByTID(tid)
         if data is None:
             self.__log.error("Failed to update data: cannot fetch initial values")
@@ -176,6 +185,7 @@ class DBase:
         shortName = data["shortName"] if shortName is None else shortName
         ogrn = data["OGRN"] if ogrn is None else ogrn
         isActive = data["isActive"] if isActive is None else isActive
+        isAccredicted = data["isAccredicted"] if isAccredicted is None else isAccredicted
         leaderName = data["leaderName"] if leaderName is None else leaderName
         leaderTID = data["leaderTID"] if leaderTID is None else leaderTID
         name = data["name"] if name is None else name
@@ -192,13 +202,14 @@ class DBase:
         vacancyCount = data["vacancyCount"] if vacancyCount is None else vacancyCount
         leaderEmail = data["leaderEmail"] if leaderEmail is None else leaderEmail
         leaderPhone = data["leaderPhone"] if leaderPhone is None else leaderPhone
+        leaderWebsite = data["leaderWebsite"] if leaderWebsite is None else leaderWebsite
 
         if not self.removeCompanyByTID(tid):
             self.__log.error("Failed to remove old company record by TID")
             return False
-        if not self.addCompany(fullName, shortName, tid, ogrn, isActive, leaderName, leaderTID, name, mainActivity,
+        if not self.addCompany(fullName, shortName, tid, ogrn, isActive, isAccredicted, leaderName, leaderTID, name, mainActivity,
                         accreditationDate, registrationDate, address, earnings, expenses, taxPayed, workerCountMean, taxMode,
-                               taxDebt, vacancyCount, leaderEmail, leaderPhone):
+                               taxDebt, vacancyCount, leaderEmail, leaderPhone, leaderWebsite):
             self.__log.error("Failed to add new company record!")
             return False
 

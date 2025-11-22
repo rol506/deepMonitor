@@ -18,6 +18,8 @@ import logging
 import sys
 import copy
 import pandas as pd
+import time
+import re
 
 from dbase import DBase, get_db
 
@@ -35,7 +37,7 @@ def getDriver() -> webdriver.Chrome:
     service = ChromeService(executable_path=ChromeDriverManager().install())
     options = webdriver.ChromeOptions()
 
-    options.add_argument("--headless")
+    #options.add_argument("--headless")
     options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_argument('--disable-popup-blocking')
     options.add_argument('--start-maximized')
@@ -95,6 +97,8 @@ def checkAccredited(tid: str):
  
     alt = driver.find_element(By.CSS_SELECTOR, ".img-ok").get_attribute("alt")
 
+    driver.close()
+
     if alt == "OK":
         logging.info(tid + " is accredicted")
         return True
@@ -104,25 +108,27 @@ def checkAccredited(tid: str):
     return None
 
 def getTaxData(tid):
-    logging.info("Getting tax-related data")
+    logging.info("Getting tax-related data for " + str(tid))
 
     driver = getDriver()
     url = f"https://pb.nalog.ru/search.html#mode=search-all&queryAll={tid}"
     driver.get(url)
 
-    wait = WebDriverWait(driver, 20)
+    wait = WebDriverWait(driver, 5)
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.pb-card--clickable")))
 
     click = driver.find_element(By.CSS_SELECTOR, "div.pb-card--clickable")
     click.click()
 
-    wait = WebDriverWait(driver, 20)
+    wait = WebDriverWait(driver, 5)
     wait.until(EC.url_changes(url))
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#pnlCompanyMainInfo > div:nth-child(1)")))
 
     panel = driver.find_element(By.TAG_NAME, "html")
     driver.implicitly_wait(3000)
     html = panel.get_attribute("innerHTML")
+
+    driver.close()
 
     # DEBUG
     #with open("details.html", "r") as f:
@@ -267,6 +273,7 @@ def loadFromExcel(filename):
                 )
 
 def updateData(tid, name) -> bool:
+    logging.info("Updating data for " + str(tid))
     try:
         workerCounts = indexWorkerCount()[1]
         vacancies = indexVacancies()
@@ -290,24 +297,111 @@ def updateData(tid, name) -> bool:
     except selenium.common.exceptions.ElementClickInterceptedException:
         logging.warning("A click was intercepted! Restarting recursivly")
         return updateData(tid, name)
+    except:
+        logging.error(tid + " failed! (Maybe it is not a company?)")
+        return False
+
+def parseListPage(url, page):
+    logging.info("Parsing company list")
+
+    #driver = getDriver()
+    #driver.get(url + "?page=" + str(page))
+
+    #wait = WebDriverWait(driver, 20)
+    #wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.tr")))
+
+    #panel = driver.find_element(By.TAG_NAME, "html")
+    #html = panel.get_attribute("innerHTML")
+
+    #driver.close()
+
+    # DEBUG
+    with open("list.html", "r") as f:
+        html = f.read()
+
+    res = []
+    soup = BeautifulSoup(html, "lxml")
+
+    def inner():
+        for p in pairs:
+            k = p.find("div", class_="td__caption")
+            v = p.find("div", class_="td__text")
+            if k is None:
+                a = p.find("a", recursive=False)
+                if str(a.text).startswith("ИП"):
+                    return
+                continue
+            if str(k.text).strip() == "ИНН:":
+                res.append(str(v.text).strip())
+
+    els = soup.find_all("div", class_="tr")
+    for el in els:
+        pairs = el.find_all("div", class_="td")
+        inner()
+
+    return res
+
+def checkTID(tid) -> bool:
+    logging.info("checking " + str(tid))
+
+    html = requests.post("https://bik-info.ru/inn.html", data={"inn": tid, "inn_test": "1"}).text
+    soup = BeautifulSoup(html, "lxml")
+    if str(soup.find("strong").text).strip() == "Верно!":
+        return True
+    else:
+        return False
+
+def findTID(url):
+    logging.info("looking for TID in " + url)
+
+    driver = getDriver()
+    driver.get(url)
+
+    driver.implicitly_wait(1)
+
+    panel = driver.find_element(By.TAG_NAME, "html")
+    html = panel.get_attribute("innerHTML")
+
+    matches = list(filter(checkTID, re.findall(r"[012345679]\d\d\d\d\d\d\d\d\d", html)))
+    driver.close()
+    return matches
+
+def update():
+    # UPDATE DATA FROM LOOKUP
+    logging.info("Updating database")
+    db = DBase(get_db())
+    recs = db.getLookupRecords()
+    for r in recs:
+        if not updateData(r["TID"], r["name"]):
+            logging.error("Failed to update database")
+            return False
+    logging.info("Database upgraded successfully")
+    return True
 
 if __name__ == "__main__":
-    ids = [
-            "7718620740",
-            "7816263857",
-            "9710138465",
-            "3900023944",
-            "9710140792",
-            "9710140721",
-            "9710113887",
-            "7806174380",
-            "9710089440",
-            "9710090492",
-            ]
+    update()
+
     #print(getTaxData("3906900574"))
     #print(getCompaniesPageCountHH())
     #print(loadFromExcel("data.xlsx"))
-    updateData("3906900574", "KODE")
-    for i in ids:
-        updateData(i, "")
-    #checkAccredited("9710090492")
+
+    #ids = ["7718620740","7816263857","9710138465","3900023944","9710140792","9710140721","9710113887","7806174380","9710089440","9710090492"]
+    #updateData("3906900574", "KODE")
+    #for i in ids:
+    #    updateData(i, "")
+
+    #url = "https://www.1cont.ru/contragent/by-okved/razrabotka-kompjhyuternogo-programmnogo-obespecheniya-konsuljhtacionnye-uslugi-v-dannoy-oblasti-i-drugie-soputstvuyushhie-uslugi_62"
+    #url = "https://www.1cont.ru/contragent/by-okved/deyateljhnostjh-v-sfere-telekommunikaciy_61"
+    #lst = []
+    #for i in range(11):
+    #    lst += parseListPage(url, i+1)
+    #    time.sleep(0.5)
+    #print(lst)
+    ##random.shuffle(lst)
+    #for i, l in enumerate(lst):
+    #    if i > 10:
+    #        break
+    #    #updateData(l, "")
+
+    #matches = findTID("https://kaliningrad.hh.ru/employers_company/informacionnye_tekhnologii_sistemnaya_integraciya_internet?page=0")
+    #print(matches)

@@ -44,6 +44,8 @@
 
           <span><b>ОГРН</b>: {{comp["OGRN"]}}</span>
           <span><b>Основной вид деятельности</b>: {{comp["mainActivity"]}}</span>
+          <span><b>Дата постановки на учет</b>: {{comp["accreditationDate"]}}</span>
+          <span><b>Дата регистрации</b>: {{comp["registrationDate"]}}</span>
         </div> 
         <div class="block" style="grid-area: tax;">
           <p class="header">Финансовая информация:</p>
@@ -93,32 +95,7 @@
         <span><b>Нет данных</b></span>
         {% endif %}
         </div>
-        <div class="block" >
-          <p class="header">Данные о аккредитации компаний:</p>
-          <div style="grid-area: pie;display:flex;flex-direction:column;align-items:center;jusitfy-content:center;">
-          <div style="width: 50%;grid-area: pie;display:flex;flex-direction:column;align-items:center;jusitfy-content:center;"><canvas id="piechart"></canvas></div>
-          <script>
-            const ctx2 = document.getElementById('piechart').getContext('2d');
-            const myChartPie = new Chart(ctx2, {
-              type: 'doughnut',
-              data: {
-                labels: ['Аккредитованные компании', 'Неаккредитованные компании'],
-                datasets: [{
-                  data: [{{stats[2]}}, {{stats[0]}}-{{stats[2]}}],
-                  backgroundColor: [
-                    '#74E66B',
-                    '#46009F',
-                  ],
-               }]
-              },
-              options: {
-                radius: "80%",
-              }
-            });
-          </script>
-        </div>
-        </div>
-        <div class="block" style="grid-area: leader;">
+          <div class="block" style="grid-area: leader;">
           <p class="header">Сведения о руководителе:</p>
           <span><b>Руководитель</b>: {{comp["leaderName"]}}</span>
           <span><b>ИНН руководителя</b>: {{comp["leaderTID"]}}</span>
