@@ -15,7 +15,7 @@ inpt.addEventListener("input", () => {
     }
     return;
   }
-  url = window.origin = "/search/" + inpt.value;
+  url = window.location.origin = "/search/" + inpt.value;
   //url = "http://localhost:4221/search/" + inpt.value;
   fetch(url)
     .then(function(response) {

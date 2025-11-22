@@ -209,13 +209,13 @@ open.addEventListener("click", (ev) => {
 });
 
 inpt.addEventListener("input", (ev) => {
-  if (!inpt.value) {
+  if (!ev.currentTarget.value) {
     bad.style.display = "none";
     good.style.display = "none";
     return;
   }
 
-  checkTID(inpt.value);
+  checkTID(ev.currentTarget.value);
 });
 
 enableScroll();
