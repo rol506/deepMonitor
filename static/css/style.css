@@ -455,7 +455,62 @@ footer {
   width: 100vw;
 }
 
-@media screen and (max-width: 1000px){
+@keyframes fade-in-left {
+0% {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+10% {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+80% {
+  opacity: 0;
+}
+
+100% {
+  transform: translateX(0%);
+  opacity: 1;
+}
+}
+
+#general span, #leader span, #tax span {
+  animation: 0.5s ease-in-out fade-in-left forwards;
+  opacity: 0;
+}
+
+#general span:nth-child(1) {animation-delay: 0.0s;}
+#general span:nth-child(2) {animation-delay: 0.1s;}
+#general span:nth-child(3) {animation-delay: 0.2s;}
+#general span:nth-child(4) {animation-delay: 0.3s;}
+#general span:nth-child(5) {animation-delay: 0.4s;}
+#general span:nth-child(6) {animation-delay: 0.5s;}
+#general span:nth-child(7) {animation-delay: 0.6s;}
+#general span:nth-child(8) {animation-delay: 0.7s;}
+
+#leader span:nth-child(1) {animation-delay: 0.0s;}
+#leader span:nth-child(2) {animation-delay: 0.1s;}
+#leader span:nth-child(3) {animation-delay: 0.2s;}
+#leader span:nth-child(4) {animation-delay: 0.3s;}
+#leader span:nth-child(5) {animation-delay: 0.4s;}
+
+#tax span:nth-child(1) {animation-delay: 0.0s;}
+#tax span:nth-child(2) {animation-delay: 0.1s;}
+#tax span:nth-child(3) {animation-delay: 0.2s;}
+#tax span:nth-child(4) {animation-delay: 0.3s;}
+#tax span:nth-child(5) {animation-delay: 0.4s;}
+#tax span:nth-child(6) {animation-delay: 0.5s;}
+#tax span:nth-child(7) {animation-delay: 0.6s;}
+#tax span:nth-child(8) {animation-delay: 0.7s;}
+#tax span:nth-child(9) {animation-delay: 0.8s;}
+
+#chart {
+  height: 350px;
+}
+
+@media screen and (max-width: 1200px){
   .block-header span {
     margin: unset;
     font-size: 3rem;
@@ -502,5 +557,13 @@ footer {
   div.logo div.r {
     font-size: 1rem;
     margin-top: 20px;
+  }
+
+  div.stats {
+    grid-template-columns: 1fr;
+  }
+
+  #chart {
+    height: 200px;
   }
 }

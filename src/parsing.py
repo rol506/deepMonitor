@@ -37,7 +37,7 @@ def getDriver() -> webdriver.Chrome:
     service = ChromeService(executable_path=ChromeDriverManager().install())
     options = webdriver.ChromeOptions()
 
-    #options.add_argument("--headless")
+    options.add_argument("--headless")
     options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_argument('--disable-popup-blocking')
     options.add_argument('--start-maximized')

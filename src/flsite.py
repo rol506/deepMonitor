@@ -1,9 +1,9 @@
 from flask import Flask, render_template, g, request, url_for, redirect, abort, jsonify, send_file
 from flask_cors import CORS
 from dotenv import load_dotenv
-from numpy import require
 from dbase import DBase, get_db
 from parsing import checkTID, update
+from werkzeug.middleware.profiler import ProfilerMiddleware
 
 import pandas as pd
 import os
@@ -18,13 +18,20 @@ app.config["DEBUG"] = bool(os.getenv("DEBUG", "False"))
 app.config["PORT"] = int(os.getenv("WEB_INTERFACE_PORT", "4221"))
 app.template_folder = "../templates/"
 app.static_folder = "../static/"
+#app.wsgi_app = ProfilerMiddleware(app.wsgi_app) # PROFILER
 CORS(app, resources={r'/search/*': {"origins": "*"}})
 
-def exportExcel(filename, lst=None):
+def exportExcel(filename, lst=None) -> None:
     db = DBase(get_db())
     records = db.getAllCompanies()
 
     res = {}
+
+    if records is None:
+        df = pd.DataFrame()
+        df.to_excel(filename)
+        return
+
 
     for r in records:
         keys = list(r.keys())
@@ -93,18 +100,18 @@ def addRecord():
     if name is None or tid is None:
         abort(400)
     else:
-        success = True
+        #success = True
         db = DBase(get_db())
         db.addUpdateRecord(tid, name)
-        if request.form.get("update") is not None:
-            success = update()
+        #if request.form.get("update") is not None:
+        #    success = update()
     return redirect(url_for("index"))
 
-@app.route("/table/<page>")
-def table(page):
+@app.route("/table/")
+def table():
     db = DBase(get_db())
     recs = db.getAllCompanies()
-    return jsonify({"dataLength": len(recs), "pageSize": 10, "data": recs})
+    return jsonify({"dataLength": len(recs) if recs is not None else 0, "data": recs})
 
 @app.route("/")
 @app.route("/home")

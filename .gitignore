@@ -1,22 +1,15 @@
-# Python venv
-bin/
-include/
-lib/
-lib64
-pyvenv.cfg
-
+.cred
+.env
 dbase.db
-res/
-src/__pycache__
-
-# Test data
-hh.html
-details.html
-details_files/
-hh_files/
-
+export.xlsx
 log.txt
+pyrightconfig.json
+pyvenv.cfg
 TODO.txt
 
-.env
-.cred
+bin/
+cache/
+lib/
+lib64
+src/__pycache__
+res/

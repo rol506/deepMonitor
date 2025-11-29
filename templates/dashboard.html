@@ -17,7 +17,7 @@
       <div class="dashboard">
         <div class="block-header" style="grid-area: head"><span class="h">{{comp["shortName"]}}</span><span class="d">Обновлено {{lastUpdate}}</span></div>
         <div style="grid-area: back; margin-bottom:30px;"><a class="anim" href="/">На главную</a></div>
-        <div class="block" style="grid-area: general;">
+        <div class="block" style="grid-area: general;" id="general">
           <p class="header">Основная информация:</p>
           <span><b>Сокращенное наименование</b>: {{comp["shortName"]}}</span>
           {% if comp["isAccredicted"] %}
@@ -47,7 +47,7 @@
           <span><b>Дата постановки на учет</b>: {{comp["accreditationDate"]}}</span>
           <span><b>Дата регистрации</b>: {{comp["registrationDate"]}}</span>
         </div> 
-        <div class="block" style="grid-area: tax;">
+        <div class="block" style="grid-area: tax;" id="tax">
           <p class="header">Финансовая информация:</p>
           <span><b>Выручка</b>: {{comp["earnings"]}}{% if comp["earnings"] != "Нет данных" %}₽{% endif %}</span>
           <span><b>Расходы</b>: {{comp["expenses"]}}{% if comp["expenses"] != "Нет данных" %}₽{% endif %}</span>
@@ -58,10 +58,10 @@
           <span><b>Количество открытых вакансий (hh.ru)</b>: {{comp["vacancyCount"]}}</span>
           <span><b>Налоговая нагрузка</b>: {{comp["taxBurden"]}}{% if comp["taxPayed"] != "Нет данных" %}%{% endif %}</span>
         </div>
-        <div class="block" style="grid-area: finance;">
+        <div class="block" style="grid-area: finance;" id="finance">
           <p class="header">Финансовая статистика:</p>
         {% if comp["taxBurden"] != "Нет данных" %}
-          <div style="grid-area: pie;display:flex;flex-direction:column;align-items:center;jusitfy-content:center;"><canvas id="chart" height="150px"></canvas></div>
+          <div style="grid-area: pie;display:flex;flex-direction:column;align-items:center;jusitfy-content:center;"><canvas id="chart" style="aspect-ratio:2/1"></canvas></div>
           <script>
             const ctx = document.getElementById('chart').getContext('2d');
             const myChart = new Chart(ctx, {
@@ -87,7 +87,8 @@
                   legend: {
                     display: false
                   }
-                }
+                },
+                responsive: false
               }
             });
           </script>
@@ -95,7 +96,7 @@
         <span><b>Нет данных</b></span>
         {% endif %}
         </div>
-          <div class="block" style="grid-area: leader;">
+          <div class="block" style="grid-area: leader;" id="leader">
           <p class="header">Сведения о руководителе:</p>
           <span><b>Руководитель</b>: {{comp["leaderName"]}}</span>
           <span><b>ИНН руководителя</b>: {{comp["leaderTID"]}}</span>

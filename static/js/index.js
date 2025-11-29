@@ -53,9 +53,27 @@ function renderTable(content) {
         let end =curPage*pageSize;
         if(index >= start && index < end) return true;
   });
+  console.log(cont);
+  if (cont.length < pageSize)
+  {
+    for (let i=cont.length-1;i<pageSize;++i)
+    {
+      cont.push({disabled: true});
+    }
+  }
+
   for (let i=0;i<cont.length;++i) {
     let c = cont[i];
-    if (checkedIDS.includes(c.id.toString()))
+    if (c.disabled == true) {
+      //Empty row to fill up space
+      result += `<tr>
+       <td><input type='checkbox' disabled></td>
+       <td></td>
+       <td></td>
+       <td></td>
+       <td></td>
+       </tr>`;
+    } else if (checkedIDS.includes(c.id.toString()))
     {
       result += `<tr>
        <td><input type='checkbox' name='${c.id}' checkID='${c.id}' checked onchange='processCheck(this)'></td>
@@ -90,12 +108,12 @@ function nextPage(ev) {
 }
 
 function fetchContent(page) {
-  let url = window.location.origin + '/table/' + page;
+  let url = window.location.origin + '/table/';
   fetch(url).then(function (responce){
     return responce.json();
   }).then(function (r){
     dataLength = r["dataLength"];
-    pageSize = r["pageSize"];
+    //pageSize = r["pageSize"];
     renderTable(r["data"]);
   })
 }
